@@ -1,0 +1,62 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////Data For 5 Main Countries of focus//////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+** 5 Main Countires with covid // Following TOTAL_CASES
+
+covidUS = subset(covid, location == "United States")
+covidUK = subset(covid, location == "United Kingdom")
+covidES = subset(covid, location == "Spain")
+covidFR = subset(covid, location == "France")
+covidGR = subset(covid, location == "Germany")
+
+covidMain <- merge(covidUS, covidUK)
+covidMain <- merge(covidMain, covidES)
+covidMain <- merge(covidMain, covidFR)
+covidMain <- merge(covidMain, covidGR)
+
+
+ggplot(covidMain, aes(x=date , y=total_cases , color=iso_code)) + geom_jitter()
+
+
+** Make date into days scince for the linear regression model
+startdate <- as.Date("2019-12-31","%Y-%m-%d")
+covidMain$days <- difftime(covidMain$date , startdate, units="days")
+covidMain$days <- as.numeric(covidMain$days)
+x <- covidMain$days
+y <- covidMain$total_cases
+xsqu <- covidMain$days^2
+xcub <- covidMain$days^3
+
+** quadratic regression model for prediction on the data against total_cases
+
+xval <- seq(min(x),max(x),0.01)
+yval <- predict(output, list(x = xval, xsqu = xval^2))
+
+
+output <- lm(y~x+xsqu)
+summary(output)
+//Both the days past and the days past squared are both significant for the regression model 
+// x     <p-value> = 3.02 x10 ^ -4
+// xsqua <p-value> = 2.01 x10 ^ -14
+ 
+// Final_Model  [ Y = 50,909.5  -  4,166 * x  +  53.1 * xsqu ]
+// Equivilance  [ Total_Cases = 50,909.5  -  4,166 * <days scince 2020>  +  53.1 * <days scince 2020>^2 ]
+
+plot(x,y, pch = 1 , xlab = "Days Scince 2020" , ylab = "Total Covid Cases")
+** Prints regression model over the data
+lines(xval,yval, col = "green")
+plot(xval,yval)
+
+** Higher Accuracy
+//Utilizing the X cubed function colunm we can use a more complex regression model to map the data
+Scince the P-value of the x cubed function holds at 7.33 x 10 ^ -7 or ( < .05) it holds significance to the data.
+
+New_Model [ Y = -7773 + 1,734.19 * x  - 68.46 * xsqu  + .67 * xcube ]
+
+
+
+*** Accuracy Calculations ***
+?
+
+
